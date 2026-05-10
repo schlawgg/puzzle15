@@ -1,11 +1,3 @@
-"""
-app.py — Графічний інтерфейс гри «Гра у 15»
-
-Містить клас PuzzleApp — головне вікно програми (View + Controller).
-Реалізує інтерактивний інтерфейс на базі tkinter із рядком меню,
-ігровим полем на Canvas та панеллю статистики.
-"""
-
 import tkinter as tk
 from tkinter import messagebox, font as tkfont
 
@@ -16,23 +8,6 @@ from saver  import ResultSaver
 
 
 class PuzzleApp:
-    """
-    Головний клас програми — реалізує GUI та логіку взаємодії з гравцем.
-
-    Атрибути:
-        root    (tk.Tk)      — кореневе вікно tkinter.
-        model   (PuzzleModel)   — модель ігрового поля.
-        solver  (PuzzleSolver)  — розв'язувач A*.
-        timer   (GameTimer)     — таймер гри.
-        saver   (ResultSaver)   — збереження результатів.
-        moves   (int)           — лічильник ходів поточної гри.
-        _best   (tuple[int, str] | None) — найкращий збережений результат.
-
-    Кольорова схема (Catppuccin Mocha):
-        BG, TILE_BG, TILE_FG, TILE_HOVER, EMPTY_BG, ACCENT, SUCCESS, TEXT_MUTED, PANEL_BG
-    """
-
-    # ── кольорова схема ────────────────────────────────────────────────────
     BG         = "#24244e"
     TILE_BG    = "#313244"
     TILE_FG    = "#cdd6f4"
@@ -43,18 +18,12 @@ class PuzzleApp:
     TEXT_MUTED = "#6c7086"
     PANEL_BG   = "#181825"
 
-    # ── константи відображення ─────────────────────────────────────────────
-    TILE_SIZE  = 100   # розмір однієї плитки у пікселях
-    PAD        = 6     # відступ між плитками
-    ANIM_DELAY = 350   # затримка між кроками авто-розв'язання (мс)
+    #константи відображення
+    TILE_SIZE  = 100   #розмір однієї плитки у пікселях
+    PAD        = 6     #відступ між плитками
+    ANIM_DELAY = 350   #затримка між кроками авто-розв'язання (мс)
 
     def __init__(self, root: tk.Tk) -> None:
-        """
-        Ініціалізує вікно, всі компоненти та запускає нову гру.
-
-        Параметри:
-            root (tk.Tk) — кореневе вікно tkinter.
-        """
         self.root = root
         self.root.title("Гра у 15")
         self.root.resizable(False, False)
@@ -70,7 +39,7 @@ class PuzzleApp:
         self._solution_steps: list[list[int]] = []
         self._step_idx:       int             = 0
 
-        # Завантажуємо найкращий результат із файлу (якщо є)
+        #Завантажуємо найкращий результат із файлу (якщо є)
         self._best: tuple[int, str] | None = ResultSaver.load_best()
 
         self._build_menu()
@@ -79,22 +48,15 @@ class PuzzleApp:
         self._refresh_board()
         self._tick()
 
-    # ── побудова меню ──────────────────────────────────────────────────────
+    #побудова меню
 
     def _build_menu(self) -> None:
-        """
-        Створює рядок меню вгорі вікна.
-
-        Структура:
-            Гра  → Нова гра | Авто-розв'язання | ── | Зберегти | ── | Вийти
-            Про гру → Про програму
-        """
         menubar = tk.Menu(self.root, bg=self.PANEL_BG, fg=self.TILE_FG,
                           activebackground=self.TILE_HOVER,
                           activeforeground=self.ACCENT,
                           relief="flat", bd=0)
 
-        # Меню «Гра»
+        #Меню «Гра»
         game_menu = tk.Menu(menubar, tearoff=0,
                             bg=self.PANEL_BG, fg=self.TILE_FG,
                             activebackground=self.TILE_HOVER,
@@ -107,7 +69,7 @@ class PuzzleApp:
         game_menu.add_command(label="Вийти              Alt+F4", command=self._quit)
         menubar.add_cascade(label="Гра", menu=game_menu)
 
-        # Меню «Про гру»
+        #Меню «Про гру»
         about_menu = tk.Menu(menubar, tearoff=0,
                              bg=self.PANEL_BG, fg=self.TILE_FG,
                              activebackground=self.TILE_HOVER,
@@ -119,24 +81,22 @@ class PuzzleApp:
 
         self.root.config(menu=menubar)
 
-        # Клавіатурні скорочення
+        #Клавіатурні скорочення
         self.root.bind("<Control-n>", lambda _: self._new_game())
         self.root.bind("<Control-s>", lambda _: self._auto_solve())
         self.root.bind("<Control-d>", lambda _: self._save_result())
         self.root.bind("<Control-r>", lambda _: self._show_rules())
-    # ── побудова основного UI ──────────────────────────────────────────────
+    #побудова основного UI
 
     def _build_ui(self) -> None:
-        """Будує заголовок, панель статистики, рядок рекорду, ігрове поле та кнопки."""
-
-        # Заголовок
+        #Заголовок
         tk.Label(
             self.root, text="Гра у 15",
             bg=self.BG, fg=self.ACCENT,
             font=("Segoe UI", 22, "bold")
         ).pack(pady=(18, 4))
 
-        # Панель статистики (ходи + час)
+        #Панель статистики (ходи + час)
         stat_frame = tk.Frame(self.root, bg=self.PANEL_BG)
         stat_frame.pack(fill="x", padx=24, pady=(14, 2))
 
@@ -151,7 +111,7 @@ class PuzzleApp:
                 padx=16, pady=6
             ).pack(side=side)
 
-        # Рядок рекорду
+        #Рядок рекорду
         stat_frame = tk.Frame(self.root, bg=self.PANEL_BG)
         stat_frame.pack(fill="x", padx=24, pady=(14, 2))
 
@@ -166,7 +126,7 @@ class PuzzleApp:
                 padx=16, pady=6
             ).pack(side=side)
 
-        # Ігрове поле (Canvas)
+        #Ігрове поле (Canvas)
         board_px = self.model.SIZE * self.TILE_SIZE + (self.model.SIZE + 1) * self.PAD
         self._canvas = tk.Canvas(
             self.root,
@@ -182,7 +142,7 @@ class PuzzleApp:
         self._hover_tile: int | None   = None
         self._init_tiles()
 
-        # Рядок повідомлень
+        #Рядок повідомлень
         self._msg_var = tk.StringVar(value="")
         tk.Label(
             self.root, textvariable=self._msg_var,
@@ -190,7 +150,7 @@ class PuzzleApp:
             font=("Segoe UI", 12, "bold"), height=2
         ).pack()
 
-        # Кнопки керування
+        #Кнопки керування
         btn_frame = tk.Frame(self.root, bg=self.BG)
         btn_frame.pack(pady=(0, 18))
 
@@ -212,7 +172,6 @@ class PuzzleApp:
             ).pack(side="left", padx=6)
 
     def _init_tiles(self) -> None:
-        """Ініціалізує графічні об'єкти (прямокутники + текст) для всіх клітинок."""
         self._canvas.delete("all")
         self._tile_rects.clear()
         self._tile_texts.clear()
@@ -235,7 +194,6 @@ class PuzzleApp:
             self._tile_texts.append(text)
 
     def _refresh_board(self) -> None:
-        """Перемальовує всі плитки відповідно до поточного стану моделі."""
         for i, val in enumerate(self.model.get_board()):
             if val == 0:
                 self._canvas.itemconfig(self._tile_rects[i], fill=self.EMPTY_BG)
@@ -244,28 +202,16 @@ class PuzzleApp:
                 self._canvas.itemconfig(self._tile_rects[i], fill=self.TILE_BG)
                 self._canvas.itemconfig(self._tile_texts[i], text=str(val))
 
-    # ── рекорд ────────────────────────────────────────────────────────────
-
+    #рекорд
     def _update_record_label(self) -> None:
-        """Оновлює рядок рекорду відповідно до _best."""
         if self._best is None:
             self._record_var.set("🏆  Рекорд: поки що немає")
         else:
             moves, time_str = self._best
             self._record_var.set(f"🏆  Рекорд: {moves} ходів за {time_str}")
 
-    # ── обробники подій ────────────────────────────────────────────────────
-
+    #обробники подій
     def _tile_at(self, x: int, y: int) -> int | None:
-        """
-        Визначає індекс клітинки за координатами миші на Canvas.
-
-        Параметри:
-            x, y (int) — координати курсора відносно Canvas.
-
-        Повертає:
-            int | None — індекс клітинки (0..15) або None якщо поза полем.
-        """
         S = self.TILE_SIZE
         P = self.PAD
         c = (x - P) // (S + P)
@@ -275,12 +221,6 @@ class PuzzleApp:
         return None
 
     def _on_click(self, event: tk.Event) -> None:
-        """
-        Обробляє клік миші на ігровому полі.
-
-        Параметри:
-            event (tk.Event) — подія миші з координатами x, y.
-        """
         if self._solving:
             return
         pos = self._tile_at(event.x, event.y)
@@ -295,12 +235,6 @@ class PuzzleApp:
             self._check_win()
 
     def _on_hover(self, event: tk.Event) -> None:
-        """
-        Підсвічує плитку під курсором, якщо її можна перемістити.
-
-        Параметри:
-            event (tk.Event) — подія переміщення миші.
-        """
         pos   = self._tile_at(event.x, event.y)
         board = self.model.get_board()
         if pos == self._hover_tile:
@@ -312,7 +246,6 @@ class PuzzleApp:
             self._canvas.itemconfig(self._tile_rects[pos], fill=self.TILE_HOVER)
 
     def _check_win(self) -> None:
-        """Перевіряє умову перемоги та виводить повідомлення при успіху."""
         if self.model.is_solved():
             self.timer.stop()
             self._msg_var.set("🎉 Вітаємо! Головоломку розв'язано!")
@@ -326,10 +259,9 @@ class PuzzleApp:
                 f"Натисніть «Зберегти», щоб записати результат."
             )
 
-    # ── команди меню / кнопок ──────────────────────────────────────────────
+    #команди меню/кнопок
 
     def _new_game(self) -> None:
-        """Починає нову гру: скидає лічильники, перемішує поле."""
         self._solving = False
         self.moves    = 0
         self.timer.reset()
@@ -339,13 +271,6 @@ class PuzzleApp:
         self._refresh_board()
 
     def _auto_solve(self) -> None:
-        """
-        Запускає або зупиняє авто-розв'язання.
-
-        При запуску: обчислює оптимальний розв'язок (A*) та відтворює
-        його покроково з затримкою ANIM_DELAY мс між ходами.
-        При повторному виклику під час розв'язання — зупиняє анімацію.
-        """
         if self._solving:
             self._solving = False
             self._msg_var.set("Авто-розв'язання зупинено.")
@@ -370,11 +295,6 @@ class PuzzleApp:
         self._play_step()
 
     def _play_step(self) -> None:
-        """
-        Відтворює один крок авто-розв'язання та планує наступний.
-
-        Викликається рекурсивно через root.after(ANIM_DELAY, …).
-        """
         if not self._solving or self._step_idx >= len(self._solution_steps):
             self._solving = False
             self.timer.stop()
@@ -388,7 +308,6 @@ class PuzzleApp:
         self.root.after(self.ANIM_DELAY, self._play_step)
 
     def _save_result(self) -> None:
-        """Зберігає поточний результат гри у файл та інформує гравця."""
         if self.moves == 0:
             messagebox.showwarning("Попередження", "Гра ще не розпочата.")
             return
@@ -396,7 +315,7 @@ class PuzzleApp:
         filename = self.saver.save(self.moves, elapsed)
         m, s     = divmod(int(elapsed), 60)
 
-        # Оновлюємо рекорд у пам'яті та мітку, якщо результат кращий
+        #Оновлюємо рекорд у пам'яті та мітку, якщо результат кращий
         if self._best is None or self.moves < self._best[0]:
             self._best = (self.moves, f"{m:02d}:{s:02d}")
             self._update_record_label()
@@ -408,7 +327,6 @@ class PuzzleApp:
         )
 
     def _show_rules(self) -> None:
-        """Показує вікно з правилами гри."""
         messagebox.showinfo(
             "Правила гри — Гра у 15",
             "🎯 МЕТА\n"
@@ -432,7 +350,6 @@ class PuzzleApp:
     )
 
     def _show_about(self) -> None:
-        """Показує вікно «Про програму»."""
         messagebox.showinfo(
             "Про програму",
             "Гра у 15\n"
@@ -445,18 +362,12 @@ class PuzzleApp:
         )
 
     def _quit(self) -> None:
-        """Завершує роботу програми з підтвердженням."""
         if messagebox.askyesno("Вихід", "Завершити роботу програми?"):
             self.timer.stop()
             self.root.destroy()
 
-    # ── таймер (оновлення кожну секунду) ──────────────────────────────────
+    #таймер
 
     def _tick(self) -> None:
-        """
-        Оновлює відображення часу кожну секунду.
-
-        Використовує root.after для неблокуючого циклу.
-        """
         self._time_var.set(f"Час: {self.timer.format()}")
         self.root.after(1000, self._tick)
